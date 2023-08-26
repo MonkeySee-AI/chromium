@@ -10,8 +10,9 @@ ENV PATH "$PATH:/srv/source/depot_tools"
 ENV CHROMIUM_SHA=${CHROMIUM_SHA}
 
 # Update the system and install packages
-RUN dfn update -y && \
-    dfn install -y "Development Tools" alsa-lib-devel atk-devel bc bluez-libs-devel bzip2-devel cairo-devel cmake cups-devel \
+RUN yum update -y && \
+    yum groupinstall -y "Development Tools" && \
+    yum install -y alsa-lib-devel atk-devel bc bluez-libs-devel bzip2-devel cairo-devel cmake cups-devel \
                    dbus-devel dbus-glib-devel dbus-x11 expat-devel glibc glibc-langpack-en gperf gtk3-devel \
                    httpd java-17-amazon-corretto libatomic libcap-devel libjpeg-devel libstdc++ libXScrnSaver-devel \
                    libxkbcommon-x11-devel mod_ssl ncurses-compat-libs nspr-devel nss-devel pam-devel \
