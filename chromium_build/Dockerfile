@@ -1,5 +1,5 @@
 # Start from Amazon Linux base image
-FROM amazonlinux:2
+FROM amazonlinux:2023
 
 ARG CHROMIUM_SHA
 
