@@ -17,7 +17,8 @@ RUN yum update -y && \
                    httpd java-17-amazon-corretto libatomic libcap-devel libjpeg-devel libstdc++ libXScrnSaver-devel \
                    libxkbcommon-x11-devel mod_ssl ncurses-compat-libs nspr-devel nss-devel pam-devel \
                    pciutils-devel perl php php-cli pulseaudio-libs-devel python python-psutil python-setuptools \
-                   ruby xorg-x11-server-Xvfb zlib
+                   ruby xorg-x11-server-Xvfb zlib \
+                   python3 python3-pip
 
 # Create Directory Structure
 RUN mkdir -p /srv/build/chromium /srv/source/chromium
