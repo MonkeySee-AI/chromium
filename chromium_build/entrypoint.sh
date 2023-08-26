@@ -36,8 +36,14 @@ if [ "$1" = "build" ]; then
 
     brotli --best --force /srv/build/chromium/chromium-$CHROMIUM_VERSION
 
+    # Archiving OpenGL ES driver
+    tar --directory /srv/source/chromium/src/out/Default --create --file /srv/build/chromium/swiftshader.tar libEGL.so libGLESv2.so libvk_swiftshader.so libvulkan.so.1 vk_swiftshader_icd.json
+
+    # Compressing OpenGL ES driver
+    brotli --best --force /srv/build/chromium/swiftshader.tar
+
     # Final artifacts
-    mv /srv/build/chromium/chromium-$CHROMIUM_VERSION /srv/build/chromium/chromium
+    mv /srv/build/chromium/chromium-$CHROMIUM_VERSION.br /srv/build/chromium/chromium.br
     echo $CHROMIUM_VERSION > /srv/build/chromium/VERSION
 else
     exec "$@"

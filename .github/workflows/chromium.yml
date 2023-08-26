@@ -43,7 +43,8 @@ jobs:
 
     - name: Extract Artifacts from Docker Container
       run: |
-        docker cp chromium-build-container:${ARTIFACT_PATH}/chromium ${ARTIFACT_PATH}/chromium
+        docker cp chromium-build-container:${ARTIFACT_PATH}/chromium.br ${ARTIFACT_PATH}/chromium.br
+        docker cp chromium-build-container:${ARTIFACT_PATH}/swiftshader.tar.br ${ARTIFACT_PATH}/swiftshader.tar.br
         docker cp chromium-build-container:${ARTIFACT_PATH}/VERSION ${ARTIFACT_PATH}/VERSION
         docker rm chromium-build-container
 
@@ -84,8 +85,19 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ${{ env.ARTIFACT_PATH }}/chromium
+        asset_path: ${{ env.ARTIFACT_PATH }}/chromium.br
         asset_name: chromium-build
+        asset_content_type: application/octet-stream
+
+    - name: Upload Swiftshader Asset
+      id: upload_chromium_asset
+      uses: actions/upload-release-asset@v1.0.2
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ${{ env.ARTIFACT_PATH }}/swiftshader.tar.br
+        asset_name: swiftshader
         asset_content_type: application/octet-stream
 
     - name: Upload Chromium Version Asset
