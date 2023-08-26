@@ -39,14 +39,13 @@ jobs:
         set -e # Exit immediately if a command exits with a non-zero status
         cd chromium_build
         ./build.sh ${{ steps.extract_version.outputs.short_string }} # build the docker image, this includes the deps to build chromium
-        docker run --privileged --entrypoint=build chromium-builder # now build the chromium version
+        docker run --name chromium-build-container --privileged chromium-builder build
 
     - name: Extract Artifacts from Docker Container
       run: |
-        container_id=$(docker create chromium-builder)
-        docker cp ${container_id}:${ARTIFACT_PATH}/chromium ${ARTIFACT_PATH}/chromium
-        docker cp ${container_id}:${ARTIFACT_PATH}/VERSION ${ARTIFACT_PATH}/VERSION
-        docker rm ${container_id}
+        docker cp chromium-build-container:${ARTIFACT_PATH}/chromium ${ARTIFACT_PATH}/chromium
+        docker cp chromium-build-container:${ARTIFACT_PATH}/VERSION ${ARTIFACT_PATH}/VERSION
+        docker rm chromium-build-container
 
     - name: Archive artifact
       uses: actions/upload-artifact@v3
