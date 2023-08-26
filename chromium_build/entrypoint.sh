@@ -35,6 +35,9 @@ if [ "$1" = "build" ]; then
     }
     }' /srv/source/chromium/src/content/browser/renderer_host/render_process_host_impl.cc > tmp_file && mv tmp_file /srv/source/chromium/src/content/browser/renderer_host/render_process_host_impl.cc
 
+    # All subsequent commands will be executed in the src directory
+    cd src
+
     # Create the build configuration directory
     mkdir -p /srv/source/chromium/src/out/Default
 
