@@ -18,10 +18,9 @@ jobs:
       uses: actions/checkout@v3
 
     - name: Prepare Environment
-      run: mkdir -p ${ARTIFACT_PATH}
-
-    - name: Setup environment
       run: |
+        sudo mkdir -p ${ARTIFACT_PATH}
+        sudo chown -R $USER:$USER ${ARTIFACT_PATH}
         sudo apt-get update
         sudo apt-get install -y jq
 

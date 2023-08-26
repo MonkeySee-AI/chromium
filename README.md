@@ -354,6 +354,15 @@ This allows us to get the best compression ratio and faster decompression times.
 | `chromium.br` | Brotli    | 10    | 36090087  | 34.42     | 73.65%     | 0.765s     |
 | `chromium.br` | Brotli    | 11    | 34820408  | **33.21** | **74.58%** | 0.712s     |
 
+## Releasing a new version
+
+Tag the commit with the chromium version number, structured like `v#.#.#`. Make sure to have an accompanying absolute chromium revision number in `versions.json` within the repo. The chromium revision will be a bit more specific than the version number, ie. 116.0.0 -> 1160321.
+
+```bash
+git tag v116.0.0
+git push origin v116.0.0
+```
+
 ## License
 
 MIT
