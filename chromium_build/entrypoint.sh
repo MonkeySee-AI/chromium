@@ -41,14 +41,14 @@ if [ "$1" = "build" ]; then
     # Create the build configuration directory
     mkdir -p /srv/source/chromium/src/out/Default
 
+    # Mounting the filesystem like this will require privileged execution of the docker container
+    mount --types tmpfs --options size=100G,nr_inodes=256k,mode=1777 tmpfs /srv/source/chromium/src/out/Default
+
     # Args was copied over to another location by the build stage
     mv /srv/source/chromium/args.gn /srv/source/chromium/src/out/Default/args.gn
 
     # Generate the build configuration
     gn gen out/Default
-
-    # Mounting the filesystem like this will require privileged execution of the docker container
-    mount --types tmpfs --options size=100G,nr_inodes=256k,mode=1777 tmpfs /srv/source/chromium/src/out/Default
 
     # Compile Chromium
     autoninja -C out/Default chrome
