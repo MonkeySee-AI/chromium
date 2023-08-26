@@ -20,11 +20,26 @@ jobs:
     - name: Prepare Environment
       run: mkdir -p ${ARTIFACT_PATH}
 
+    - name: Setup environment
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y jq
+
+    - name: Extract Short String from versions.json
+      id: extract_version
+      run: |
+        SHORT_STRING=$(jq -r '."'"${GITHUB_REF#refs/tags/v}"'"' versions.json)
+        if [ "$SHORT_STRING" = "null" ]; then
+          echo "No matching version found!"
+          exit 1
+        fi
+        echo ::set-output name=short_string::$SHORT_STRING
+
     - name: Run Dockerized Build
       run: |
         set -e # Exit immediately if a command exits with a non-zero status
         cd chromium_build
-        ./build.sh # build the docker image itself
+        ./build.sh ${{ steps.extract_version.outputs.short_string }} # build the docker image, this includes the deps to build chromium
         docker run --privileged --entrypoint=build chromium-builder # now build the chromium version
 
     - name: Extract Artifacts from Docker Container
