@@ -23,15 +23,17 @@ if [ "$1" = "build" ]; then
 
     awk 'BEGIN {flag=0} {
     if (flag == 0 && $0 ~ /CHECK\(render_process_host->InSameStoragePartition\(/) {
-        print "/*";
-        print $0;
+        print "//" $0;
         flag = 1;
-    } else if (flag == 1 && $0 ~ /false\)\)\);/) {
-        print $0;
-        print " */";
+    } else if (flag == 1 && $0 ~ /false \/\* can_create \*\/\)\)\);/) {
+        print "//" $0;
         flag = 0;
     } else {
-        print $0;
+        if (flag == 1) {
+            print "//" $0;
+        } else {
+            print $0;
+        }
     }
     }' /srv/source/chromium/src/content/browser/renderer_host/render_process_host_impl.cc > tmp_file && mv tmp_file /srv/source/chromium/src/content/browser/renderer_host/render_process_host_impl.cc
 
