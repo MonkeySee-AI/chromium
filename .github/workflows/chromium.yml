@@ -58,7 +58,16 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
 
+    permissions:
+      contents: write
+      packages: write
+
     steps:
+    - name: Prepare Environment
+      run: |
+        sudo mkdir -p ${ARTIFACT_PATH}
+        sudo chown -R $USER:$USER ${ARTIFACT_PATH}
+
     - name: Download artifact
       uses: actions/download-artifact@v3
       with:
