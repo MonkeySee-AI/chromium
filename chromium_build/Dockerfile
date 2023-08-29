@@ -33,5 +33,6 @@ COPY .gclient /srv/source/chromium/.gclient
 COPY args.gn /srv/source/chromium/args.gn
 
 COPY entrypoint.sh /entrypoint.sh
+COPY bundle_dependencies.sh /bundle_dependencies.sh
 
 ENTRYPOINT [ "/entrypoint.sh" ]
