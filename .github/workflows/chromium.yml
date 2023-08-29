@@ -1,0 +1,121 @@
+name: Build Amazon AMI Chromium
+
+on:
+  push:
+    tags:
+      - '*'
+
+env:
+  ARTIFACT_PATH: /srv/build/chromium
+  ARTIFACT_NAME: chromium-aws
+
+jobs:
+  build:
+    runs-on: chromium-builder
+
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v3
+
+    - name: Prepare Environment
+      run: |
+        sudo mkdir -p ${ARTIFACT_PATH}
+        sudo chown -R $USER:$USER ${ARTIFACT_PATH}
+        sudo apt-get update
+        sudo apt-get install -y jq
+
+    - name: Extract Short String from versions.json
+      id: extract_version
+      run: |
+        SHORT_STRING=$(jq -r '."'"${GITHUB_REF#refs/tags/v}"'"' versions.json)
+        if [ "$SHORT_STRING" = "null" ]; then
+          echo "No matching version found!"
+          exit 1
+        fi
+        echo ::set-output name=short_string::$SHORT_STRING
+
+    - name: Run Dockerized Build
+      run: |
+        set -e # Exit immediately if a command exits with a non-zero status
+        cd chromium_build
+        ./build.sh ${{ steps.extract_version.outputs.short_string }} # build the docker image, this includes the deps to build chromium
+        docker run --name chromium-build-container --privileged chromium-builder build
+
+    - name: Extract Artifacts from Docker Container
+      run: |
+        docker cp chromium-build-container:${ARTIFACT_PATH}/chromium.br ${ARTIFACT_PATH}/chromium.br
+        docker cp chromium-build-container:${ARTIFACT_PATH}/swiftshader.tar.br ${ARTIFACT_PATH}/swiftshader.tar.br
+        docker cp chromium-build-container:${ARTIFACT_PATH}/VERSION ${ARTIFACT_PATH}/VERSION
+        docker rm chromium-build-container
+
+    - name: Archive artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: ${{ env.ARTIFACT_NAME }}
+        path: ${{ env.ARTIFACT_PATH }}
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+      packages: write
+
+    steps:
+    - name: Prepare Environment
+      run: |
+        sudo mkdir -p ${ARTIFACT_PATH}
+        sudo chown -R $USER:$USER ${ARTIFACT_PATH}
+
+    - name: Download artifact
+      uses: actions/download-artifact@v3
+      with:
+        name: ${{ env.ARTIFACT_NAME }}
+        path: ${{ env.ARTIFACT_PATH }}
+
+    - name: Get the tag version
+      id: extract_branch
+      run: echo ::set-output name=branch::${GITHUB_REF#refs/tags/}
+
+    - name: Create Release
+      id: create_release
+      uses: actions/create-release@v1.1.4
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ steps.extract_branch.outputs.branch }}
+        release_name: ${{ steps.extract_branch.outputs.branch }}
+
+    - name: Upload Chromium Build Asset
+      id: upload_chromium_asset
+      uses: actions/upload-release-asset@v1.0.2
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ${{ env.ARTIFACT_PATH }}/chromium.br
+        asset_name: chromium-build
+        asset_content_type: application/octet-stream
+
+    - name: Upload Swiftshader Asset
+      id: upload_swiftshader_asset
+      uses: actions/upload-release-asset@v1.0.2
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ${{ env.ARTIFACT_PATH }}/swiftshader.tar.br
+        asset_name: swiftshader
+        asset_content_type: application/octet-stream
+
+    - name: Upload Chromium Version Asset
+      id: upload_version_asset
+      uses: actions/upload-release-asset@v1.0.2
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ${{ env.ARTIFACT_PATH }}/VERSION
+        asset_name: version
+        asset_content_type: text/plain
